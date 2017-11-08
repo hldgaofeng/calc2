@@ -1,0 +1,49 @@
+body, table, button, select, input {
+    font-size: 16px;
+    font-family: 宋体;
+}
+
+body {
+    padding:0px;
+    margin: 0px;
+}
+
+[v-cloak] {
+    display:none;
+}
+tr.printonly {
+    display:none;
+}
+@media print {
+    @page {
+            size: 210mm 297mm;  /* or size: 794px 1123px;   */
+            size: 297mm 420mm;  /* or size: 1123px 1588px;  */
+    }
+    div.noprint {
+        display:none;
+    }
+    tr.printonly {
+        display:table-row;
+    }
+    div.print-repeat {
+
+    }
+}
+
+.cmdbar {
+    background-color: lightgray;
+}
+.cmdbar form {
+    display:inline-block;
+}
+.cmdbar label {
+    display: block;
+    margin: 5px;
+}
+
+.cmdbar input, .cmdbar select {
+    text-align:right;
+}
+
+tr.break_before { page-break-before: always; }
+tr.break_after { page-break-after: always; }
