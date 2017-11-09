@@ -1,7 +1,5 @@
 <template>
   <div id="app" v-cloak>
-    <img v-if="0" src="./assets/logo.png">
-    <HelloWorld v-if="0" />
 <!--[if IE]>
 <OBJECT id="WebBrowser" height="0" width="0" classid="CLSID:8856F961-340A-11D0-A96B-00C04FD705A2" VIEWASTEXT style="display:none"></OBJECT>
 <![endif]-->
@@ -13,155 +11,179 @@
 -->
     <div class="cmdbar noprint">
 		<el-container>
-		<el-header style="text-align: left; font-size: 12px;background-color:white;">
-<span>
-		<el-button @click="onLogin" v-if="!is_login">登录</el-button>
-		<span v-if="is_login">您好，{{curr_user().get('username')}}</span>
-		<el-button @click="logout" v-if="is_login">注销</el-button>
-		<el-button @click="doGen">生成！</el-button>
-		<el-button @click="onLoad" v-if="is_login" type="primary" icon="el-icon-upload">加载</el-button>
-		<el-button @click="onSave" v-if="is_login" type="primary">保存<i class="el-icon-circle-plus el-icon--right"></i></el-button>
+		<el-header style="text-align: left; font-size: 12px;background-color:white;padding:10px;">
+		<el-button @click="onLoad" v-if="is_login" type="default" icon="el-icon-upload">加载试题</el-button>
+		<el-button @click="onSave" v-if="is_login" type="info" icon="el-icon-circle-plus">保存</el-button>
+		<el-button type="default" icon="el-icon-download" disabled>导出Word文件</el-button>
         <!--[if IE]>
         <input onclick="document.all.WebBrowser.ExecWB(7,1)" type="button" value="打印预览">
         <![endif]-->
-        <el-button @click="doPrint">打印</el-button>
-		<span style="float:right">访问量：{{mycounter}}</span>
-</span>
-			<el-dropdown>
-				<i class="el-icon-setting" style="margin-right: 15px"><span v-if="is_login">您好，{{curr_user().get('username')}}</span></i>
-								<el-dropdown-menu slot="dropdown">
-				<el-dropdown-item @select="logout">注销</el-dropdown-item>
-				</el-dropdown-menu>
-			</el-dropdown>
+		<el-button type="warning" icon="el-icon-printer" @click="doPrint">打印</el-button>&nbsp;
+	<el-tooltip class="item" effect="dark" content="点击此按钮立即按当前设置生成试题" placement="bottom-start">
+		<el-dropdown split-button type="success" @click="doGen" @command="handleCommand" trigger="click" icon="el-icon-refresh">生成试题！
+		<el-dropdown-menu slot="dropdown">
+		<el-dropdown-item command="a">100以内加减混合</el-dropdown-item>
+		<el-dropdown-item command="b">100以内加减混合(带借/进位)</el-dropdown-item>
+		<el-dropdown-item command="c">10以内乘法</el-dropdown-item>
+		</el-dropdown-menu>
+		</el-dropdown>
+	</el-tooltip>
+		<span style="float:right">
+			访问量：{{mycounter}}
+		<el-button @click="onLogin" type="primary" v-if="!is_login">登录</el-button>
+		<span v-if="is_login">当前用户：{{curr_user().get('username')}}</span>
+		<el-button @click="logout" v-if="is_login">注销</el-button>
+		</span>
+
 		</el-header>
 
-		<el-main>
+		<el-main style="padding:0px;">
 
 		<el-tabs tab-position="left" v-model="activeName" @tab-click="">
-			<el-tab-pane label="使用说明" name="third">这是使用说明</el-tab-pane>
-			<el-tab-pane label="基本设置" name="first">
-        <form>
-            <fieldset>
-                <legend>快捷设置</legend>
+			<el-tab-pane label="使用说明" name="first">
+			<HelloWorld v-if="0" />
+			<img align="middle" src="./assets/logo.png">
+				<p>
+				小学口算试题生成器 V1.0.1 <br/>
+				作者：高大科技 <br/>
+				</p>
+				<a href="#">点此反馈问题</a>
+			</el-tab-pane>
+			<el-tab-pane label="基本设置" name="second">
                 <table>
                     <tbody>
                     <tr>
                         <td>总题数：</td>
-                        <td><input type="number" name="count" v-model="count" style="width:5em"/></td>
+                        <td>
+							<el-input-number v-model="count" :min="1" :max="999999" label="总题数"></el-input-number>
+						</td>
                     </tr>
                     <tr>
                         <td>每页行数(IE)：</td>
-                        <td><input type="number" name="count" v-model="pagerows" style="width:5em"/>
+                        <td>
+							<el-input-number v-model="pagerows" :min="1" :max="1000" label="每页行数"></el-input-number>
                             共 {{parseInt((res.length + (cols-0) - 1) / (cols-0))}} 行
                             {{parseInt(((parseInt(res.length + (cols-0) - 1) / (cols-0)) + (pagerows - 1)) / (pagerows - 0))}} 页
                         </td>
                     </tr>
                     <tr>
                         <td>尾部补空行：</td>
-                        <td><input type="checkbox" v-model="appendemptyrows"/></td>
+                        <td><el-switch
+							  v-model="appendemptyrows"
+							    active-color="#13ce66"
+								  inactive-color="#ff4949" border>
+							  </el-switch></td>
                     </tr>
                     <tr>
                         <td>列数：</td>
-                        <td><input type="number" name="cols" v-model="cols" style="width:5em"/></td>
+                        <td>
+							<el-input-number v-model="cols" :min="1" :max="20" label="列数"></el-input-number>
+						</td>
                     </tr>
                     <tr>
                         <td>间距控制：</td>
                         <td>
-                            <input type="number" v-model="cellPadding" style="width:5em"/>空白
-                            <input type="number" v-model="cellSpacing" style="width:5em"/>间距
+							<el-input-number v-model="cellPadding" :min="0" :max="99" label="总题数"></el-input-number>空白
+							<el-input-number v-model="cellSpacing" :min="0" :max="99" label="总题数"></el-input-number>间距
                         </td>
                     </tr>
                     <tr>
                         <td>字体设置：</td>
-                        <td><select v-model="fontfamily">
-                            <option value="宋体">宋体</option>
-                            <option value="楷体">楷体</option>
-                            <option value="微软雅黑" selected>微软雅黑</option>
-                        </select>
-                            <input type="number" v-model="fontsize" style="width:5em"/>像素
+                        <td><el-select v-model="fontfamily" placeholder="请选择">
+                            <el-option label="宋体" value="宋体"/>
+							<el-option label="楷体" value="楷体"/>
+							<el-option label="微软雅黑" value="微软雅黑" selected/>
+                        </el-select>
+							<el-input-number v-model="fontsize" :min="5" :max="100" label="字体大小"></el-input-number>像素
                         </td>
-                    </tr>
-                    <tr>
-                        <td>快捷方式：</td>
-                        <td><select name="level" disabled>
-                            <option value="">暂未实现，敬请期待</option>
-                            <option value="20">20 以内整数加减法</option>
-                            <option value="100n">100 以内加减法不进/借位</option>
-                            <option value="100+1">100 以内进位加法(1 位数)</option>
-                            <option value="100+2">100 以内进位加法(2 位数)</option>
-                            <option value="100-1">100 以内借位减法(1 位数)</option>
-                            <option value="100-2">100 以内借位减法(2 位数)</option>
-                            <option value="100+-">100 以内连加连减</option>
-                        </select></td>
                     </tr>
                 </tbody>
                 </table>
-            </fieldset>
-        </form>
 			</el-tab-pane>
-			<el-tab-pane label="详细设置" name="second">
-        <form>
-            <fieldset>
-                <legend>详细设置</legend>
+			<el-tab-pane label="详细设置" name="third">
                 <table>
                     <tbody>
 
                     <tr>
                         <td>可用运算符：</td>
-                        <td>
-							<label style="cursor:pointer;display:inline;color:blue;"><input type="checkbox" v-model="isadd"/>加</label>
-							<label style="cursor:pointer;display:inline;color:green;"><input type="checkbox" v-model="issub"/>减</label>
-							<label style="cursor:pointer;display:inline;color:purple;"><input type="checkbox" v-model="ismul"/>乘</label>
-							<label style="cursor:pointer;display:inline;color:red;"><input type="checkbox" v-model="isdiv" disabled/>除</label>
+                        <td >
+							<el-checkbox style="display:inline-block" v-model="isadd" label="加" border/><el-checkbox 
+							style="display:inline-block" v-model="issub" label="减" border/><el-checkbox 
+							style="display:inline-block" v-model="ismul" label="乘" border/><el-checkbox 
+							style="display:inline-block" v-model="isdiv" label="除" border disabled/>
 						</td>
                     </tr>
                     <tr>
                         <td>运算规则：</td>
-                        <td><select name="rule" v-model="rule">
-                            <option value="1">已知条件，求得数</option>
-                            <option value="2">已知得数，求条件</option>
-                        </select>
-                            <select v-if="'2'==rule" v-model="whichcond">
-                                <option value="">随机求条件</option>
-                                <template v-for="(rg, i) in range">
-                                    <option :value="i">求条件 {{i+1}}</option>
-                                </template>
-                            </select>
+                        <td>
+							<el-select v-model="rule" placeholder="请选择">
+								<el-option
+								label="已知条件，求得数"
+								value="1">
+								</el-option>
+								<el-option
+								label="已知得数，求条件"
+								value="2">
+								</el-option>
+							</el-select>
+							<el-select v-if="'2'==rule" v-model="whichcond" placeholder="请选择">
+								<el-option
+								label="随机求条件"
+								value="">
+								</el-option>
+								<el-option
+								v-for="(rg, i) in range"
+								:key="i"
+								:label="'求条件 '+(i+1)"
+								:value="i">
+								</el-option>
+							</el-select>
                         </td>
                     </tr>
                     <tr>
                         <td>借/进位设置：</td>
-                        <td><select name="borrow" v-model="borrow">
-                            <option value="random" selected>随机决定</option>
-                            <option value="no">不要借/进位</option>
-                            <option value="all">全都带借/进位</option>
-                        </select></td>
+                        <td>
+							<el-tooltip class="item" effect="dark" content="注意借/进位设置只对加/减法起作用" placement="bottom-start">
+							<el-select v-model="borrow" placeholder="请选择">
+								<el-option
+								label="随机决定"
+								value="random">
+								</el-option>
+								<el-option
+								label="不要借/进位"
+								value="no">
+								</el-option>
+								<el-option
+								label="全都带借/进位"
+								value="all">
+								</el-option>
+							</el-select>
+							</el-tooltip>
+                        </td>
                     </tr>
                     <tr>
                         <td>运算项个数：</td>
                         <td>
-                            <input type="number" v-model="itemcount" style="width:5em"/> 个
+							<el-input-number v-model="itemcount" :min="2" :max="5" label="运算项个数"></el-input-number>个
                         </td>
                     </tr>
                     <tr v-for="(rg, i) in range">
-                        <td>数值{{i+1}}范围：</td>
+                        <td>运算项{{i+1}}取值范围：</td>
                         <td>
-                            <input type="number" style="width:5em" v-model="rg.min"/> -
-                            <input type="number" v-model="rg.max" style="width:5em"/>
+							<el-input-number v-model="rg.min" :min="0" :max="rg.max" label="起始范围"></el-input-number> -
+							<el-input-number v-model="rg.max" :min="rg.min" :max="999999" label="结束范围"></el-input-number>
                         </td>
                     </tr>
                     <tr>
-                        <td>得数范围：</td>
+                        <td>得数取值范围：</td>
                         <td>
-                            <input type="number" style="width:5em" v-model="result.min"/> -
-                            <input type="number" v-model="result.max" style="width:5em"/>
+							<el-input-number v-model="result.min" :min="0" :max="result.max" label="起始范围"></el-input-number> -
+							<el-input-number v-model="result.max" :min="result.min" :max="999999" label="结束范围"></el-input-number>
                         </td>
                     </tr>
 
                     </tbody>
                 </table>
-            </fieldset>
-        </form>
 			</el-tab-pane>
 		  </el-tabs>
 		<el-alert
@@ -178,7 +200,15 @@
         <thead style="display:table-header-group;">
         <tr>
             <th :colspan="cols">
-                <div class="print-repeat" contenteditable="true">
+				<el-popover
+				ref="popover1"
+				placement="top"
+				title="提示"
+				width="280"
+				trigger="hover"
+				content="直接点击页眉区域，可以修改页眉内容。">
+				</el-popover>
+                <div v-popover:popover1 class="print-repeat" contenteditable="true">
                     <h3>口算（100以内加减法混合运算）</h3>
                     姓名：__________ 日期：____月____日 时间：________ 对题：____道<br/><br/>
                 </div>
@@ -186,6 +216,11 @@
         </tr>
         </thead>
         <tbody>
+		<tr v-if="res.length <= 0"><td><el-alert
+    title="还没有生成试题！"
+    type="error"
+    :closable="false">
+  </el-alert></td></tr>
         <tr :class="{break_before:p>1}" v-for="p in parseInt(((parseInt(res.length + (cols-0) - 1) / (cols-0)) + (pagerows - 1)) / (pagerows - 0)) ">
             <td style="border: 0px solid;">
                 <table :style="{fontFamily:fontfamily, fontSize:fontsize+'px'}" width="100%"  :cellPadding="cellPadding" :cellSpacing="cellSpacing">
@@ -216,12 +251,17 @@
 		:visible.sync="loginDialogVisible"
 		width="30%"
 		:before-close="handleClose">
-		<span>这是一段信息</span>
-			<input type="text" v-if="!is_login" placeholder="用户名" v-model="username"/>
-			<input type="password" v-if="!is_login" placeholder="密码" v-model="password"/>
+		<el-form label-width="80px">
+		<el-form-item label="用户名">
+		<el-input v-model="username"></el-input>
+		</el-form-item>
+		<el-form-item label="密码">
+		<el-input type="password" v-model="password"></el-input>
+		</el-form-item>
+		</el-form>
 		<span slot="footer" class="dialog-footer">
 			<el-button @click="loginDialogVisible = false">取消</el-button>
-			<el-button @click="register">注册</el-button>
+			<el-button @click="register">注册新用户</el-button>
 			<el-button type="primary" @click="login">登录</el-button>
 		</span>
 	</el-dialog>
@@ -236,7 +276,7 @@
     :data="tableData"
     highlight-current-row
     @current-change="handleCurrentChange"
-    style="width: 100%">
+    >
     <el-table-column
       type="index"
       width="50">
@@ -249,12 +289,18 @@
     <el-table-column
       property="name"
       label="名称"
+      width="180">
+    </el-table-column>
+    <el-table-column
+      property="op"
+      label="操作"
       >
     </el-table-column>
   </el-table>	
 		<span slot="footer" class="dialog-footer">
 			<el-button @click="paperDialogVisible = false">取消</el-button>
-			<el-button type="primary" @click="paperDialogVisible = false">确定</el-button>
+			<el-button type="danger" @click="doDelData">删除</el-button>
+			<el-button type="primary" @click="doLoadData">加载</el-button>
 		</span>
 	</el-dialog>
   </div>
@@ -277,7 +323,7 @@ export default {
 	  return {
 		   activeIndex: '1',
 		           activeIndex2: '1',
-		  activeName: 'second',
+		  activeName: 'first',
 		  loginDialogVisible: false,
 		  paperDialogVisible: false,
 		  tableData: [{
@@ -390,6 +436,9 @@ export default {
         }
     },
     methods: {
+		handleCommand: function(command) {
+			this.$message('点击了' + command);
+		},
 		handleSelect(key, keyPath) {
 			        console.log(key, keyPath);
 					      },
@@ -397,11 +446,6 @@ export default {
 			this.currentRow = val;
 		},
 		handleClose: function(done) {
-			this.$confirm('确认关闭？')
-			.then(_ => {
-				done();
-			})
-			.catch(_ => {});
 		},
         op: function() {
 			var ops = [];
@@ -698,23 +742,31 @@ export default {
         },
 
         doGen: function() {
+			var self = this;
             if( ! this.isValid() ) {
                 return;
             }
-            this.report.total = 0;
-            this.report.addcnt = 0; // 加法题数量
-            this.report.subcnt = 0; // 减法题数量
-            this.report.mulcnt = 0;
-            this.report.divcnt = 0;
-            this.report.borrowcnt = 0; // 借/进位题数量
-            this.report.exceptcnt = 0; // 异常题数量(由于冲突，未能按规则生成)
-            this.res = [];
-            for(var i = 0; i < this.count; i ++) {
-                var item = {
-                    li: this.genItem()
-                };
-                this.res.push(item);
-            }
+			this.$confirm('您确定要重新生成所有试题吗？', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				this.report.total = 0;
+				this.report.addcnt = 0; // 加法题数量
+				this.report.subcnt = 0; // 减法题数量
+				this.report.mulcnt = 0;
+				this.report.divcnt = 0;
+				this.report.borrowcnt = 0; // 借/进位题数量
+				this.report.exceptcnt = 0; // 异常题数量(由于冲突，未能按规则生成)
+				this.res = [];
+				for(var i = 0; i < this.count; i ++) {
+					var item = {
+						li: this.genItem()
+					};
+					this.res.push(item);
+				}
+			}).catch(() => {
+			});
         },
 
         doPrint: function() {
@@ -740,7 +792,7 @@ export default {
 				gameScore.set("type", 'paper');
 				gameScore.set("user", self.curr_user());
 				gameScore.set("name", value);
-				gameScore.set("content", 'test'+new Date().toISOString());
+				gameScore.set("content", JSON.stringify(self.res));
 				gameScore.set("crttime", new Date().toISOString());
 				gameScore.save(null, {
 					success: function(object) {
@@ -754,7 +806,9 @@ export default {
 						alert("create object fail");
 					}
 				});
-			}).catch(() => {
+			}).catch((e) => {
+				console.log(e);
+				alert('保存失败');
 			});
 		},
 
@@ -776,9 +830,10 @@ export default {
 						var obj = results[i];
 						//alert(obj.id + ' - ' + obj.createdAt + ' - ' + obj.get('content'));
 						self.tableData.push({
+							id: obj.id,
 							date: obj.createdAt,
 							name: obj.get('name'),
-							address: obj.id
+							content: obj.get('content')
 						});
 					}
 					self.paperDialogVisible = true;
@@ -849,24 +904,65 @@ export default {
 			});
 		},
 
-		doDelData: function(obj_id) {
-			var GameScore = Bmob.Object.extend("GameScore");
-			var query = new Bmob.Query(GameScore);
-			query.get(obj_id, {
-				success: function(object) {
-					// The object was retrieved successfully.
-					object.destroy({
-						success: function(deleteObject) {
-							alert("delete success");
-						},
-						error: function(GameScoretest, error) {
-							alert("delete fail");
-						}
-					});
-				},
-				error: function(object, error) {
-					alert("query object fail");
-				}
+		doLoadData: function() {
+			var self = this;
+			if( ! self.currentRow  || 0 >= self.tableData.length ) {
+				return;
+			}
+			this.$confirm('您确定要加载选中的试题吗？', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				self.res = JSON.parse(self.currentRow.content);
+				self.$message({
+					type: 'success',
+					message: `试题加载成功！`
+				});
+				self.paperDialogVisible = false;
+			}).catch(() => {
+				alert('加载失败');
+			});
+		},
+
+		doDelData: function() {
+			var self = this;
+			if( ! self.currentRow  || 0 >= self.tableData.length ) {
+				return;
+			}
+			this.$confirm('您确定要删除选中的试题吗？', '提示', {
+				confirmButtonText: '确定',
+				cancelButtonText: '取消',
+				type: 'warning'
+			}).then(() => {
+				var GameScore = Bmob.Object.extend("GameScore");
+				var query = new Bmob.Query(GameScore);
+				query.equalTo("type", 'paper'); 
+				query.equalTo("user", this.curr_user()); 
+				query.get(self.currentRow.id, {
+					success: function(object) {
+						// The object was retrieved successfully.
+						object.destroy({
+							success: function(deleteObject) {
+								self.$message({
+									type: 'success',
+									message: `试题已被成功删除！`
+								});
+								self.onLoad();
+							},
+							error: function(GameScoretest, error) {
+								this.$message({
+									type: 'error',
+									message: `试题删除失败！原因：${error.message}`
+								});
+							}
+						});
+					},
+					error: function(object, error) {
+						alert("query object fail");
+					}
+				});
+			}).catch(() => {
 			});
 		},
 
@@ -886,7 +982,10 @@ export default {
 		register: function() {
 			var self = this;
 			if(!this.username || ! this.password) {
-				alert('用户名、密码必须输入！');
+				this.$message({
+					type: 'error',
+					message: `用户名、密码必须输入！`
+				});
 				return;
 			}
 			var user = new Bmob.User();
@@ -901,11 +1000,18 @@ export default {
 				success: function(user) {
 					// Hooray! Let them use the app now.
 					self.is_login = self.curr_user() ? true : false;
-					alert('注册成功!');
+					self.loginDialogVisible = false;
+					self.$message({
+						type: 'success',
+						message: `注册并登录成功！`
+					});
 				},
 				error: function(user, error) {
 					// Show the error message somewhere and let the user try again.
-					alert("Error: " + error.code + " " + error.message);
+					self.$message({
+						type: 'error',
+						message: `注册失败！错误原因：${error.message}`
+					});
 				}
 			});
 		},
@@ -917,19 +1023,28 @@ export default {
 		login: function() {
 			var self = this;
 			if(!this.username || ! this.password) {
-				alert('用户名、密码必须输入！');
+				this.$message({
+					type: 'error',
+					message: `用户名、密码必须输入！`
+				});
 				return;
 			}
 			Bmob.User.logIn(this.username, this.password, {
 				success: function(user) {
 					// Do stuff after successful login.
 					self.is_login = self.curr_user() ? true : false;
-					alert('登录成功');
 					self.loginDialogVisible = false;
+					self.$message({
+						type: 'success',
+						message: `登录成功！`
+					});
 				},
 				error: function(user, error) {
 					// The login failed. Check error to see why.
-					alert('登录失败' + error.message);
+					self.$message({
+						type: 'error',
+						message: `登录失败！请重新检查您输入的用户名和密码！错误原因：${error.message}`
+					});
 				}
 			});
 		},
@@ -976,6 +1091,10 @@ export default {
 			Bmob.User.logOut();
 			var currentUser = Bmob.User.current();  // this will now be null
 			self.is_login = self.curr_user() ? true : false;
+			this.$notify({
+				title: '提示',
+				message: '您已经安全的退出了登录。'
+			});
 		},
 
         blank: function() {
@@ -992,9 +1111,7 @@ export default {
 
 <style>
 #app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color: #2c3e50;
 }
 </style>
