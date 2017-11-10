@@ -14,7 +14,7 @@
 		<el-header style="text-align: left; font-size: 12px;background-color:white;padding:10px;">
 		<el-button @click="onLoad" v-if="is_login" type="default" icon="el-icon-upload">加载试题</el-button>
 		<el-button @click="onSave" v-if="is_login" type="info" icon="el-icon-circle-plus">保存</el-button>
-		<el-button type="default" icon="el-icon-download" disabled>导出Word文件</el-button>
+		<el-button type="default" icon="el-icon-download" @click="exportWord">导出Word文件</el-button>
         <!--[if IE]>
         <input onclick="document.all.WebBrowser.ExecWB(7,1)" type="button" value="打印预览">
         <![endif]-->
@@ -196,7 +196,7 @@
 		</el-main>
 		</el-container>
     </div>
-    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+    <table ref="mycontent" width="100%" border="0" cellpadding="0" cellspacing="0">
         <thead style="display:table-header-group;">
         <tr>
             <th :colspan="cols">
@@ -436,6 +436,11 @@ export default {
         }
     },
     methods: {
+		exportWord: function() {
+			var content = this.$refs.mycontent.outerHTML;
+			var converted = htmlDocx.asBlob(content, {orientation: 'landscape', margins: {top: 720}});
+			saveAs(converted, 'test.docx');
+		},
 		handleCommand: function(command) {
 			this.$message('点击了' + command);
 		},
